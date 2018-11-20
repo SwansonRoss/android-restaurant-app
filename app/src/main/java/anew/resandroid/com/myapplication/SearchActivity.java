@@ -220,7 +220,7 @@ public class SearchActivity extends AppCompatActivity {
                             placeList.add(placeLikelihood.getPlace().freeze());
                         }
 //
-                        possiblePlaces.release();
+//                        possiblePlaces.release();
 //
 //                        for (Place place : placeList) {
 //                            List<Integer> types = place.getPlaceTypes();

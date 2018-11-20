@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name">My Application</string>
+    <string name="facebook_app_id">1350071051786117</string>
+    <string name="fb_login_protocol_scheme">fb1350071051786117</string>
+    <string name="welcome">Welcome!</string>
     <string name="oneDollar">💸</string>
     <string name="twoDollar">💸💸</string>
     <string name="threeDollar">💸💸💸</string>
