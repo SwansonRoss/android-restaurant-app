@@ -175,7 +175,7 @@ public class SearchActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                if (ContextCompat.checkSelfPermission(SearchActivity.this, PERMISSION_STRING) == PackageManager.PERMISSION_GRANTED) {
+                //if (ContextCompat.checkSelfPermission(SearchActivity.this, PERMISSION_STRING) == PackageManager.PERMISSION_GRANTED) {
                     //if(searchPlace == null)
                     loadScreen.setVisibility(View.VISIBLE);
                         locationSearch();
@@ -189,10 +189,10 @@ public class SearchActivity extends AppCompatActivity {
 //                        Log.v("Place", "Checkpoint3");
 //                        locationManager.requestLocationUpdates(provider, 1000, 1, locationListener);
 //                    }
-                }
-                else{
-                    //Read string from above.
-                }
+//                }
+//                else{
+//                    //Read string from above.
+//                }
 
             }
         });
@@ -203,9 +203,8 @@ public class SearchActivity extends AppCompatActivity {
 
     private void locationSearch(){
         final ArrayList<Restaurant> restaurantList = new ArrayList<>();
-
-        if(ContextCompat.checkSelfPermission(this, this.PERMISSION_STRING) == PackageManager.PERMISSION_GRANTED) {
-
+        if(searchPlace == null) {
+            if (ContextCompat.checkSelfPermission(this, this.PERMISSION_STRING) == PackageManager.PERMISSION_GRANTED) {
                 final PlaceDetectionClient placeDetectionClient = Places.getPlaceDetectionClient(SearchActivity.this);
 
                 Task<PlaceLikelihoodBufferResponse> placeLikelihoods = placeDetectionClient.getCurrentPlace(null);
@@ -234,9 +233,7 @@ public class SearchActivity extends AppCompatActivity {
 //                            }
 //
 //                        }
-                        if(searchPlace == null) {
-                            searchPlace = placeList.get(0);
-                        }
+                        searchPlace = placeList.get(0);
 
 //                        try{
 
@@ -245,63 +242,64 @@ public class SearchActivity extends AppCompatActivity {
 //                                    .build(SearchActivity.this);
 //                            startActivityForResult(intent, AUTOCOMPLETE_REQUEST_CODE);
 
-                            mGeoDataClient = Places.getGeoDataClient(SearchActivity.this);
+                        mGeoDataClient = Places.getGeoDataClient(SearchActivity.this);
 
-                            AutocompleteFilter restuarantFilter = new AutocompleteFilter.Builder().
-                                    setTypeFilter(AutocompleteFilter.TYPE_FILTER_ESTABLISHMENT).build();
-
-
-                            char searchChar = 'A';
-                            int i;
-
-                            for(i = 0; i <  26; i++) {
-
-                                StringBuilder searchStringBuilder = new StringBuilder();
-                                searchStringBuilder.append(searchChar);
-                                String searchString = searchStringBuilder.toString();
-                                searchChar++;
-
-                                if(i %5 == 0){goodToSend = true;}
+                        AutocompleteFilter restuarantFilter = new AutocompleteFilter.Builder().
+                                setTypeFilter(AutocompleteFilter.TYPE_FILTER_ESTABLISHMENT).build();
 
 
-                                Task<AutocompletePredictionBufferResponse> results = mGeoDataClient.getAutocompletePredictions(searchString, getBoundsBias(searchPlace), null);
+                        char searchChar = 'A';
+                        int i;
 
-                                results.addOnCompleteListener(new OnCompleteListener<AutocompletePredictionBufferResponse>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<AutocompletePredictionBufferResponse> task) {
-                                        AutocompletePredictionBufferResponse response = task.getResult();
-                                        for (AutocompletePrediction prediction : response) {
+                        for (i = 0; i < 26; i++) {
 
-                                            final Task retrievePlaceTask = mGeoDataClient.getPlaceById(prediction.getPlaceId());
-                                            retrievePlaceTask.addOnCompleteListener(new OnCompleteListener() {
-                                                @Override
-                                                public void onComplete(@NonNull Task task) {
-                                                    PlaceBufferResponse placeBufferResponse = (PlaceBufferResponse) task.getResult();
-                                                    Place place = placeBufferResponse.get(0);
-                                                    List<Integer> types = place.getPlaceTypes();
-                                                    for (int type : types) {
-                                                        if (type == Place.TYPE_RESTAURANT) {
-                                                            Restaurant restaurant = new Restaurant(place);
-                                                            restaurantList.add(restaurant);
-                                                            Log.v("Place ", place.getName().toString());
+                            StringBuilder searchStringBuilder = new StringBuilder();
+                            searchStringBuilder.append(searchChar);
+                            String searchString = searchStringBuilder.toString();
+                            searchChar++;
 
-                                                            break;
-                                                        }
-                                                    }
-                                                    placeBufferResponse.release();
-                                                    sendList(restaurantList);
-                                                    loadScreen.setVisibility(View.INVISIBLE);
-                                                }
-
-                                            });
-                                        }
-                                        response.release();
-                                    }
-
-
-
-                                });
+                            if (i % 5 == 0) {
+                                goodToSend = true;
                             }
+
+
+                            Task<AutocompletePredictionBufferResponse> results = mGeoDataClient.getAutocompletePredictions(searchString, getBoundsBias(searchPlace), null);
+
+                            results.addOnCompleteListener(new OnCompleteListener<AutocompletePredictionBufferResponse>() {
+                                @Override
+                                public void onComplete(@NonNull Task<AutocompletePredictionBufferResponse> task) {
+                                    AutocompletePredictionBufferResponse response = task.getResult();
+                                    for (AutocompletePrediction prediction : response) {
+
+                                        final Task retrievePlaceTask = mGeoDataClient.getPlaceById(prediction.getPlaceId());
+                                        retrievePlaceTask.addOnCompleteListener(new OnCompleteListener() {
+                                            @Override
+                                            public void onComplete(@NonNull Task task) {
+                                                PlaceBufferResponse placeBufferResponse = (PlaceBufferResponse) task.getResult();
+                                                Place place = placeBufferResponse.get(0);
+                                                List<Integer> types = place.getPlaceTypes();
+                                                for (int type : types) {
+                                                    if (type == Place.TYPE_RESTAURANT) {
+                                                        Restaurant restaurant = new Restaurant(place);
+                                                        restaurantList.add(restaurant);
+                                                        Log.v("Place ", place.getName().toString());
+
+                                                        break;
+                                                    }
+                                                }
+                                                placeBufferResponse.release();
+                                                sendList(restaurantList);
+                                                loadScreen.setVisibility(View.INVISIBLE);
+                                            }
+
+                                        });
+                                    }
+                                    response.release();
+                                }
+
+
+                            });
+                        }
 
 //
 //                        }catch (GooglePlayServicesRepairableException e) {
@@ -334,6 +332,69 @@ public class SearchActivity extends AppCompatActivity {
 //
 //            }catch (GooglePlayServicesRepairableException e) {
 //            }catch (GooglePlayServicesNotAvailableException e){}
+
+            }
+        }
+        else{
+
+            mGeoDataClient = Places.getGeoDataClient(SearchActivity.this);
+
+            AutocompleteFilter restuarantFilter = new AutocompleteFilter.Builder().
+                    setTypeFilter(AutocompleteFilter.TYPE_FILTER_ESTABLISHMENT).build();
+
+
+            char searchChar = 'A';
+            int i;
+
+            for (i = 0; i < 26; i++) {
+
+                StringBuilder searchStringBuilder = new StringBuilder();
+                searchStringBuilder.append(searchChar);
+                String searchString = searchStringBuilder.toString();
+                searchChar++;
+
+                if (i % 5 == 0) {
+                    goodToSend = true;
+                }
+
+
+                Task<AutocompletePredictionBufferResponse> results = mGeoDataClient.getAutocompletePredictions(searchString, getBoundsBias(searchPlace), null);
+
+                results.addOnCompleteListener(new OnCompleteListener<AutocompletePredictionBufferResponse>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AutocompletePredictionBufferResponse> task) {
+                        AutocompletePredictionBufferResponse response = task.getResult();
+                        for (AutocompletePrediction prediction : response) {
+
+                            final Task retrievePlaceTask = mGeoDataClient.getPlaceById(prediction.getPlaceId());
+                            retrievePlaceTask.addOnCompleteListener(new OnCompleteListener() {
+                                @Override
+                                public void onComplete(@NonNull Task task) {
+                                    PlaceBufferResponse placeBufferResponse = (PlaceBufferResponse) task.getResult();
+                                    Place place = placeBufferResponse.get(0);
+                                    List<Integer> types = place.getPlaceTypes();
+                                    for (int type : types) {
+                                        if (type == Place.TYPE_RESTAURANT) {
+                                            Restaurant restaurant = new Restaurant(place);
+                                            restaurantList.add(restaurant);
+                                            Log.v("Place ", place.getName().toString());
+
+                                            break;
+                                        }
+                                    }
+                                    placeBufferResponse.release();
+                                    sendList(restaurantList);
+                                    loadScreen.setVisibility(View.INVISIBLE);
+                                }
+
+                            });
+                        }
+                        response.release();
+                    }
+
+
+                });
+            }
 
         }
 
