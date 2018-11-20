@@ -1,8 +1,11 @@
 package anew.resandroid.com.myapplication;
 
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,10 +16,16 @@ import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 
+import static com.facebook.FacebookSdk.getApplicationContext;
+
 public class RestaurantViewAdapter extends RecyclerView.Adapter<RestaurantViewAdapter.ViewHolder> {
 
     //private ArrayList<Restaurant> restaurants;
     private Restaurant[] restaurants;
+
+    private String fbId;
+
+    private String r_address;
 
     public RestaurantViewAdapter(Restaurant[] r){
         this.restaurants = r;
@@ -54,6 +63,26 @@ public class RestaurantViewAdapter extends RecyclerView.Adapter<RestaurantViewAd
             @Override
             public void onClick(View v) {
                 restaurants[i].doGreenButton();
+
+                r_address = restaurants[i].getAddress();
+
+//                Log.d("ERRORS", restaurants[i].getAddress());
+
+                Log.d("ERRORS", "called");
+
+                SharedPreferences preferences= PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+
+                Log.d("ERRORS", preferences.toString());
+
+                fbId = preferences.getString("Name","");
+
+                Recommendation recommendation = new Recommendation(fbId, r_address, true);
+
+                Log.d("ERRORS", "called AFTER RECO");
+
+                //recommendation.savePreferences();
+
+//                Log.d("ERRORS", recommendation.toString());
             }
         });
 

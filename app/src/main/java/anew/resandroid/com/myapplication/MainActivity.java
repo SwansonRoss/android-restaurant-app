@@ -2,8 +2,10 @@ package anew.resandroid.com.myapplication;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.Button;
@@ -23,6 +25,7 @@ import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+import com.facebook.login.widget.ProfilePictureView;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -44,11 +47,17 @@ public class MainActivity extends AppCompatActivity {
     private CallbackManager callbackManager;
     private LoginButton loginButton;
     private String name;
-
+    private String picId;
+    private String fbId;
+    private String on_resume;
+    private ProfilePictureView profilePictureView;
+    Profile profile;
     private String username;
     private String password;
     final int RC_SIGN_IN = 3;
     GoogleSignInClient mGoogleSignInClient;
+
+    public static final String PREFS_NAME = "MY_PREFS";
 
 
     @Override
@@ -57,6 +66,23 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         Context context = this;
+
+        TextView mTextView = findViewById(R.id.welcome);
+
+        mTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startFromScreen();
+            }
+
+        });
+
+        if (savedInstanceState == null) {
+            mTextView.setText(R.string.welcome);
+        } else {
+            on_resume = savedInstanceState.getString("name");
+            mTextView.setText("Welcome back." + on_resume);
+        }
 
         loginButton = (LoginButton) findViewById(R.id.login_button);
 
@@ -81,7 +107,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(LoginResult loginResult) {
                         AccessToken accessToken = loginResult.getAccessToken();
-                        Profile profile = Profile.getCurrentProfile();
+                        profile = Profile.getCurrentProfile();
 
                         GraphRequest request = GraphRequest.newMeRequest(
                                 loginResult.getAccessToken(),
@@ -96,8 +122,21 @@ public class MainActivity extends AppCompatActivity {
 
                                             JSONObject responseGraphObject = response.getJSONObject();
                                             name = (String) responseGraphObject.get("name");
+                                            fbId = (String) responseGraphObject.get("id");
 
-                                            Log.d("ERRORS", name);
+                                            TextView textView = findViewById(R.id.welcome);
+                                            textView.setText( R.string.welcome + ", " + name);
+
+                                            ProfilePictureView profilePictureView;
+
+                                            profilePictureView = findViewById(R.id.friendProfilePicture);
+
+                                            profilePictureView.setProfileId(fbId);
+
+                                            SharedPreferences preferences =  PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                                            SharedPreferences.Editor editor=preferences.edit();
+                                            editor.putString("Name",fbId);
+                                            editor.commit();Log.d("ERRORS", name);
 
                                         } catch (Exception e){
                                             Log.d("ERRORS", e.getMessage());
@@ -106,8 +145,6 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 });
 
-                        TextView textView = findViewById(R.id.welcome);
-                        textView.setText( name);
                         Bundle parameters = new Bundle();
                         parameters.putString("fields", "id,name,email,gender,birthday");
                         request.setParameters(parameters);
@@ -242,6 +279,17 @@ public class MainActivity extends AppCompatActivity {
         }
 
         return bitmap;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+        super.onSaveInstanceState(savedInstanceState);
+        savedInstanceState.putString("name", on_resume);
+    }
+
+    private final void startFromScreen () {
+        Intent intent = new Intent(this, SearchActivity.class);
+        startActivity(intent);
     }
 
 //        Bitmap bitmap = getFacebookProfilePicture(userID);
